@@ -1,12 +1,10 @@
-// Seed script — run with: node -e "require('./src/lib/seed.js')"
-// Uses CommonJS (require) so it runs directly with Node without transpiling
-
+// Seed script — run with: node src/lib/seed.js
 require('dotenv').config({ path: '.env.local' })
 
 const mongoose = require('mongoose')
 const bcrypt   = require('bcryptjs')
 
-// ─── Schemas (inline, CommonJS) ───────────────────────────────────────────────
+// ─── Schemas (inline CommonJS — models use ES modules so we define them here) ──
 
 const UserSchema = new mongoose.Schema(
   {
@@ -48,7 +46,7 @@ const CourseSchema = new mongoose.Schema(
 const User   = mongoose.models.User   || mongoose.model('User',   UserSchema)
 const Course = mongoose.models.Course || mongoose.model('Course', CourseSchema)
 
-// ─── Main seed function ────────────────────────────────────────────────────────
+// ─── Main ──────────────────────────────────────────────────────────────────────
 
 async function seed() {
   const uri = process.env.MONGODB_URI
@@ -61,41 +59,43 @@ async function seed() {
   console.log('✅  Connected to MongoDB')
 
   // Clear existing data
-  await User.deleteMany({})
   await Course.deleteMany({})
+  await User.deleteMany({})
   console.log('🗑️   Cleared existing users and courses')
 
   // ── Users ──────────────────────────────────────────────────────────────────
 
-  const adminPassword   = await bcrypt.hash('admin123',   10)
-  const studentPassword = await bcrypt.hash('student123', 10)
+  const adminHash   = await bcrypt.hash('admin123',   10)
+  const studentHash = await bcrypt.hash('student123', 10)
 
-  const [admin, student] = await User.insertMany([
+  const [admin] = await User.insertMany([
     {
       name:     'Admin User',
       email:    'admin@eduflow.com',
-      password: adminPassword,
+      password: adminHash,
       role:     'admin',
       bio:      'Platform administrator and lead instructor.',
     },
     {
       name:     'John Student',
       email:    'student@eduflow.com',
-      password: studentPassword,
+      password: studentHash,
       role:     'user',
       bio:      'Lifelong learner passionate about technology.',
     },
   ])
 
-  console.log('👤  Created users:', admin.email, '|', student.email)
+  console.log('👤  Created 2 users')
 
-  // ── Courses ─────────────────────────────────────────────────────────────────
+  // ── Courses ────────────────────────────────────────────────────────────────
 
-  const courses = [
+  const thumbnail = 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800'
+
+  await Course.insertMany([
     {
       title:            'JavaScript Full Course',
       slug:             'javascript-full-course',
-      description:      'A complete beginner-to-intermediate JavaScript course covering variables, functions, DOM manipulation, async programming, and ES6+ features with hands-on projects.',
+      description:      'A complete beginner-to-intermediate JavaScript course covering variables, functions, DOM manipulation, and ES6+ features. You will build real-world projects and learn modern JavaScript patterns used in the industry.',
       shortDescription: 'Learn JavaScript from scratch with real-world projects.',
       price:            0,
       category:         'development',
@@ -103,17 +103,15 @@ async function seed() {
       isPublished:      true,
       instructor:       admin._id,
       instructorName:   'Admin User',
-      thumbnail:        'https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=800&auto=format&fit=crop',
+      thumbnail,
       averageRating:    4.8,
       reviewCount:      142,
-      enrollmentCount:  980,
-      duration:         '12h 30m',
-      tags:             ['javascript', 'web development', 'programming'],
+      enrollmentCount:  480,
     },
     {
       title:            'React & Next.js Masterclass',
       slug:             'react-nextjs-masterclass',
-      description:      'Master React hooks, context, and Next.js 14 with the App Router. Build full-stack applications with server components, API routes, and MongoDB integration.',
+      description:      'Master React hooks, context, and Next.js 14 with the App Router. Build full-stack applications with server components, API routes, and MongoDB integration. Covers authentication, deployment, and performance optimisation.',
       shortDescription: 'Build modern full-stack apps with React and Next.js 14.',
       price:            49,
       category:         'development',
@@ -121,17 +119,15 @@ async function seed() {
       isPublished:      true,
       instructor:       admin._id,
       instructorName:   'Admin User',
-      thumbnail:        'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800&auto=format&fit=crop',
+      thumbnail,
       averageRating:    4.9,
       reviewCount:      218,
-      enrollmentCount:  1340,
-      duration:         '18h 45m',
-      tags:             ['react', 'nextjs', 'full-stack'],
+      enrollmentCount:  450,
     },
     {
       title:            'UI/UX Design Fundamentals',
-      slug:             'ui-ux-design-fundamentals',
-      description:      'Learn the core principles of user interface and user experience design. Covers design thinking, wireframing, prototyping, color theory, typography, and usability testing.',
+      slug:             'uiux-design-fundamentals',
+      description:      'Learn the core principles of user interface and user experience design. Covers design thinking, wireframing, prototyping, and usability testing. By the end you will be able to design intuitive and beautiful digital products.',
       shortDescription: 'Master the fundamentals of UI/UX design and design thinking.',
       price:            29,
       category:         'design',
@@ -139,35 +135,31 @@ async function seed() {
       isPublished:      true,
       instructor:       admin._id,
       instructorName:   'Admin User',
-      thumbnail:        'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800&auto=format&fit=crop',
+      thumbnail,
       averageRating:    4.7,
       reviewCount:      95,
-      enrollmentCount:  620,
-      duration:         '8h 15m',
-      tags:             ['ui', 'ux', 'design'],
+      enrollmentCount:  320,
     },
     {
       title:            'Figma for Beginners',
       slug:             'figma-for-beginners',
-      description:      'Get started with Figma, the industry-standard design tool. Learn components, auto-layout, prototyping, and collaboration features to design beautiful interfaces.',
-      shortDescription: 'Learn Figma from zero and design stunning UIs.',
+      description:      'Get started with Figma, the industry-standard design tool. Learn components, auto-layout, prototyping, and collaboration features. You will design beautiful interfaces from scratch by the end of the course.',
+      shortDescription: 'Learn Figma from zero and design stunning user interfaces.',
       price:            0,
       category:         'design',
       level:            'beginner',
       isPublished:      true,
       instructor:       admin._id,
       instructorName:   'Admin User',
-      thumbnail:        'https://images.unsplash.com/photo-1609921212029-bb5a28e60960?w=800&auto=format&fit=crop',
+      thumbnail,
       averageRating:    4.6,
       reviewCount:      78,
-      enrollmentCount:  540,
-      duration:         '5h 20m',
-      tags:             ['figma', 'design', 'prototyping'],
+      enrollmentCount:  290,
     },
     {
       title:            'Digital Marketing Strategy',
       slug:             'digital-marketing-strategy',
-      description:      'Build and execute a complete digital marketing strategy. Covers SEO, social media marketing, email campaigns, PPC advertising, and analytics to grow your online presence.',
+      description:      'Build and execute a complete digital marketing strategy covering SEO, social media, email campaigns, and PPC advertising. Learn how to measure and analyse results using Google Analytics and other tools.',
       shortDescription: 'Build a complete digital marketing strategy from scratch.',
       price:            39,
       category:         'marketing',
@@ -175,17 +167,15 @@ async function seed() {
       isPublished:      true,
       instructor:       admin._id,
       instructorName:   'Admin User',
-      thumbnail:        'https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?w=800&auto=format&fit=crop',
+      thumbnail,
       averageRating:    4.5,
       reviewCount:      61,
-      enrollmentCount:  390,
-      duration:         '7h 10m',
-      tags:             ['marketing', 'seo', 'social media'],
+      enrollmentCount:  180,
     },
     {
       title:            'Python for Data Science',
       slug:             'python-for-data-science',
-      description:      'Start your data science journey with Python. Learn NumPy, Pandas, Matplotlib, and Scikit-learn to analyse datasets, build visualisations, and create machine learning models.',
+      description:      'Start your data science journey with Python and essential libraries like NumPy, Pandas, and Matplotlib. Learn to analyse datasets, build visualisations, and create basic machine learning models with Scikit-learn.',
       shortDescription: 'Learn Python and essential libraries for data science.',
       price:            49,
       category:         'science',
@@ -193,17 +183,15 @@ async function seed() {
       isPublished:      true,
       instructor:       admin._id,
       instructorName:   'Admin User',
-      thumbnail:        'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&auto=format&fit=crop',
+      thumbnail,
       averageRating:    4.8,
       reviewCount:      187,
-      enrollmentCount:  1120,
-      duration:         '15h 00m',
-      tags:             ['python', 'data science', 'machine learning'],
+      enrollmentCount:  500,
     },
     {
       title:            'Business Communication',
       slug:             'business-communication',
-      description:      'Develop professional communication skills for the modern workplace. Covers written communication, presentation skills, negotiation, active listening, and cross-cultural communication.',
+      description:      'Develop professional communication skills for the modern workplace. Covers written communication, presentations, negotiation, and cross-cultural communication. Perfect for anyone looking to advance their career.',
       shortDescription: 'Master professional communication skills for the workplace.',
       price:            19,
       category:         'business',
@@ -211,17 +199,15 @@ async function seed() {
       isPublished:      true,
       instructor:       admin._id,
       instructorName:   'Admin User',
-      thumbnail:        'https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=800&auto=format&fit=crop',
+      thumbnail,
       averageRating:    4.4,
       reviewCount:      43,
-      enrollmentCount:  275,
-      duration:         '4h 30m',
-      tags:             ['business', 'communication', 'soft skills'],
+      enrollmentCount:  150,
     },
     {
       title:            'Advanced Node.js & APIs',
       slug:             'advanced-nodejs-apis',
-      description:      'Deep dive into Node.js for building production-grade REST APIs. Covers Express, authentication with JWT, MongoDB with Mongoose, error handling, testing, and deployment.',
+      description:      'Deep dive into Node.js for building production-grade REST APIs with Express, JWT authentication, and MongoDB. Covers error handling, testing, security best practices, and deployment to cloud platforms.',
       shortDescription: 'Build production-ready REST APIs with Node.js and Express.',
       price:            59,
       category:         'development',
@@ -229,24 +215,20 @@ async function seed() {
       isPublished:      true,
       instructor:       admin._id,
       instructorName:   'Admin User',
-      thumbnail:        'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800&auto=format&fit=crop',
+      thumbnail,
       averageRating:    4.9,
       reviewCount:      104,
-      enrollmentCount:  720,
-      duration:         '14h 20m',
-      tags:             ['nodejs', 'api', 'backend'],
+      enrollmentCount:  260,
     },
-  ]
+  ])
 
-  await Course.insertMany(courses)
   console.log('📚  Created 8 courses')
-
-  console.log('\n✅  Seed complete!')
-  console.log('─────────────────────────────────')
+  console.log('\n✅  Seed complete! Database has 8 courses and 2 users.')
+  console.log('─────────────────────────────────────────────────')
   console.log('Login credentials:')
   console.log('  Admin:   admin@eduflow.com   / admin123')
   console.log('  Student: student@eduflow.com / student123')
-  console.log('─────────────────────────────────\n')
+  console.log('─────────────────────────────────────────────────\n')
 
   await mongoose.disconnect()
   process.exit(0)
