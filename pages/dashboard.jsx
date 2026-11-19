@@ -14,9 +14,9 @@ export async function getServerSideProps(ctx) {
       headers: { cookie: ctx.req.headers.cookie || '' },
     })
     const data = res.ok ? await res.json() : { enrollments: [] }
-    return { props: { session, enrollments: data.enrollments || [] } }
+    return { props: { session: JSON.parse(JSON.stringify(session)), enrollments: data.enrollments || [] } }
   } catch {
-    return { props: { session, enrollments: [] } }
+    return { props: { session: JSON.parse(JSON.stringify(session)), enrollments: [] } }
   }
 }
 
