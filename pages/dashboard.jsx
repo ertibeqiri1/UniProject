@@ -1,4 +1,5 @@
 import { getServerSession } from 'next-auth/next'
+import { useSession } from 'next-auth/react'
 import { authOptions } from './api/auth/[...nextauth]'
 import Link from 'next/link'
 import { BookOpen, Clock, CheckCircle, GraduationCap, ArrowRight } from 'lucide-react'
@@ -20,8 +21,9 @@ export async function getServerSideProps(ctx) {
   }
 }
 
-export default function DashboardPage({ session, enrollments }) {
-  const user = session.user
+export default function DashboardPage({ enrollments }) {
+  const { data: session } = useSession()
+  const user = session?.user
   const total = enrollments.length
   const inProgress = enrollments.filter((e) => e.status === 'in-progress').length
   const completed = enrollments.filter((e) => e.status === 'completed').length
@@ -38,7 +40,7 @@ export default function DashboardPage({ session, enrollments }) {
       {/* Welcome */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">
-          Welcome back, {user.name?.split(' ')[0]} 👋
+          Welcome back, {user?.name?.split(' ')[0]} 👋
         </h1>
         <p className="text-gray-500 mt-1">Here&apos;s a summary of your learning journey.</p>
       </div>
