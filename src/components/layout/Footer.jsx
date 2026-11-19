@@ -45,12 +45,12 @@ export default function Footer() {
               >
                 <Github className="w-4 h-4" />
               </a>
-              <a
+              <Link
                 href="/contact"
                 className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors"
               >
                 <Mail className="w-4 h-4" />
-              </a>
+              </Link>
             </div>
           </div>
 
