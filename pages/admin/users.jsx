@@ -1,4 +1,5 @@
 import { getServerSession } from 'next-auth/next'
+import { useSession } from 'next-auth/react'
 import { authOptions } from '../api/auth/[...nextauth]'
 import { useState } from 'react'
 import Link from 'next/link'
@@ -16,9 +17,9 @@ export async function getServerSideProps(ctx) {
       headers: { cookie: ctx.req.headers.cookie || '' },
     })
     const data = res.ok ? await res.json() : { users: [] }
-    return { props: { session, initialUsers: data.users || [] } }
+    return { props: { initialUsers: data.users || [] } }
   } catch {
-    return { props: { session, initialUsers: [] } }
+    return { props: { initialUsers: [] } }
   }
 }
 
@@ -29,12 +30,13 @@ function formatDate(dateStr) {
   })
 }
 
-export default function AdminUsersPage({ session: adminSession, initialUsers }) {
+export default function AdminUsersPage({ initialUsers }) {
+  const { data: adminSession } = useSession()
   const [users, setUsers] = useState(initialUsers)
   const [loadingId, setLoadingId] = useState(null)
 
   const handleToggleRole = async (user) => {
-    if (user.email === adminSession.user.email) {
+    if (user.email === adminSession?.user?.email) {
       alert("You can't change your own role.")
       return
     }
@@ -107,7 +109,7 @@ export default function AdminUsersPage({ session: adminSession, initialUsers }) 
                     .join('')
                     .toUpperCase()
                     .slice(0, 2)
-                  const isSelf = user.email === adminSession.user.email
+                  const isSelf = user.email === adminSession?.user?.email
 
                   return (
                     <tr key={user._id} className="hover:bg-gray-50 transition-colors">
