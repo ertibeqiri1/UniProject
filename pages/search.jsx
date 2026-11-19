@@ -89,14 +89,23 @@ export async function getServerSideProps({ query }) {
   }
 
   try {
-    const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
-    const res  = await fetch(`${baseUrl}/api/courses?search=${encodeURIComponent(q)}&limit=24`)
-    const data = await res.json()
+    const { default: dbConnect } = await import('@/src/lib/dbConnect')
+    const { default: Course }    = await import('@/src/models/Course')
+    await dbConnect()
+    const filter = {
+      isPublished: true,
+      $or: [
+        { title:            { $regex: q, $options: 'i' } },
+        { shortDescription: { $regex: q, $options: 'i' } },
+        { tags:             { $in: [new RegExp(q, 'i')] } },
+      ],
+    }
+    const courses = await Course.find(filter).sort({ createdAt: -1 }).limit(24).lean()
     return {
       props: {
-        courses: data.courses || [],
+        courses: JSON.parse(JSON.stringify(courses)),
         query:   q,
-        total:   data.total || data.courses?.length || 0,
+        total:   courses.length,
       },
     }
   } catch {

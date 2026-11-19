@@ -110,11 +110,15 @@ export default function CoursesPage({ courses }) {
 
 export async function getStaticProps() {
   try {
-    const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
-    const res  = await fetch(`${baseUrl}/api/courses?limit=100`)
-    const data = await res.json()
+    const { default: dbConnect } = await import('@/src/lib/dbConnect')
+    const { default: Course }    = await import('@/src/models/Course')
+    await dbConnect()
+    const courses = await Course.find({ isPublished: true })
+      .sort({ createdAt: -1 })
+      .limit(100)
+      .lean()
     return {
-      props: { courses: data.courses || [] },
+      props: { courses: JSON.parse(JSON.stringify(courses)) },
       revalidate: 30,
     }
   } catch {
