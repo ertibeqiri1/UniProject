@@ -226,7 +226,7 @@ UniProject/
 
 The project is deployed on **Vercel**. Each push to `main` triggers an automatic deployment.
 
-Live URL: [https://uniproject.vercel.app](https://uniproject.vercel.app)
+Live URL: [https://uni-project-ten-zeta.vercel.app](https://uni-project-ten-zeta.vercel.app)
 
 ---
 
